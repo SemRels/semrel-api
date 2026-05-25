@@ -5,7 +5,7 @@ syntax = "proto3";
 
 package semantic_release.v1;
 
-option go_package = "github.com/GoSemantics/go-semrel-api/api/gen/v1;semrelv1";
+option go_package = "github.com/SemRels/semrel-api/api/gen/v1;semrelv1";
 
 // ----------------------------------------------------------------------------
 // Shared types

@@ -10,7 +10,7 @@ package plugin
 import (
 	"context"
 
-	semrelv1 "github.com/GoSemantics/go-semrel-api/api/gen/v1"
+	semrelv1 "github.com/SemRels/semrel-api/api/gen/v1"
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 )

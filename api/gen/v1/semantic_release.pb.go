@@ -1431,7 +1431,7 @@ const file_v1_semantic_release_proto_rawDesc = "" +
 	"\vUpdateFiles\x12'.semantic_release.v1.UpdateFilesRequest\x1a(.semantic_release.v1.UpdateFilesResponse2\xbc\x01\n" +
 	"\vHooksPlugin\x12Z\n" +
 	"\tOnSuccess\x12%.semantic_release.v1.OnSuccessRequest\x1a&.semantic_release.v1.OnSuccessResponse\x12Q\n" +
-	"\x06OnFail\x12\".semantic_release.v1.OnFailRequest\x1a#.semantic_release.v1.OnFailResponseB:Z8github.com/GoSemantics/go-semrel-api/api/gen/v1;semrelv1b\x06proto3"
+	"\x06OnFail\x12\".semantic_release.v1.OnFailRequest\x1a#.semantic_release.v1.OnFailResponseB3Z1github.com/SemRels/semrel-api/api/gen/v1;semrelv1b\x06proto3"
 
 var (
 	file_v1_semantic_release_proto_rawDescOnce sync.Once

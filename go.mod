@@ -1,4 +1,4 @@
-module github.com/GoSemantics/go-semrel-api
+module github.com/SemRels/semrel-api
 
 go 1.26.3
 

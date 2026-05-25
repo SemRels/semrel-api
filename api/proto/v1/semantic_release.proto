@@ -1,0 +1,193 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 The SemRels Authors
+
+syntax = "proto3";
+
+package semantic_release.v1;
+
+option go_package = "github.com/GoSemantics/go-semrel-api/api/gen/v1;semrelv1";
+
+// ----------------------------------------------------------------------------
+// Shared types
+// ----------------------------------------------------------------------------
+
+// SemanticVersion represents a parsed semantic version.
+message SemanticVersion {
+  uint32 major = 1;
+  uint32 minor = 2;
+  uint32 patch = 3;
+  string pre_release = 4;
+  string build_metadata = 5;
+}
+
+// Commit represents a parsed VCS commit.
+message Commit {
+  string sha = 1;
+  string raw_message = 2;
+  repeated string files_changed = 3;
+  string author_name = 4;
+  string author_email = 5;
+  int64 timestamp = 6;
+}
+
+// ReleaseContext carries the full context of an in-progress release.
+message ReleaseContext {
+  string repo_owner = 1;
+  string repo_name = 2;
+  string repo_url = 3;
+  string branch = 4;
+  SemanticVersion last_version = 5;
+  SemanticVersion next_version = 6;
+  repeated Commit commits = 7;
+  bool dry_run = 8;
+  map<string, string> config = 9;
+}
+
+// ----------------------------------------------------------------------------
+// Provider plugin
+// ----------------------------------------------------------------------------
+
+service ProviderPlugin {
+  rpc GetLastRelease(GetLastReleaseRequest) returns (GetLastReleaseResponse);
+  rpc GetCommitsSince(GetCommitsSinceRequest) returns (GetCommitsSinceResponse);
+  rpc CreateRelease(CreateReleaseRequest) returns (CreateReleaseResponse);
+  rpc UploadAsset(UploadAssetRequest) returns (UploadAssetResponse);
+}
+
+message GetLastReleaseRequest {
+  ReleaseContext ctx = 1;
+}
+
+message GetLastReleaseResponse {
+  SemanticVersion version = 1;
+  string tag_sha = 2;
+}
+
+message GetCommitsSinceRequest {
+  ReleaseContext ctx = 1;
+  string since_sha = 2;
+}
+
+message GetCommitsSinceResponse {
+  repeated Commit commits = 1;
+}
+
+message CreateReleaseRequest {
+  ReleaseContext ctx = 1;
+  string changelog = 2;
+}
+
+message CreateReleaseResponse {
+  string release_url = 1;
+  string release_id = 2;
+}
+
+message UploadAssetRequest {
+  ReleaseContext ctx = 1;
+  string release_id = 2;
+  string asset_path = 3;
+  string asset_name = 4;
+  string content_type = 5;
+}
+
+message UploadAssetResponse {
+  string asset_url = 1;
+}
+
+// ----------------------------------------------------------------------------
+// CICondition plugin
+// ----------------------------------------------------------------------------
+
+service CIConditionPlugin {
+  rpc VerifyConditions(VerifyConditionsRequest) returns (VerifyConditionsResponse);
+}
+
+message VerifyConditionsRequest {
+  ReleaseContext ctx = 1;
+}
+
+message VerifyConditionsResponse {
+  string error_message = 1;
+  string details = 2;
+}
+
+// ----------------------------------------------------------------------------
+// CommitAnalyzer plugin
+// ----------------------------------------------------------------------------
+
+enum BumpLevel {
+  BUMP_LEVEL_UNSPECIFIED = 0;
+  BUMP_LEVEL_NONE = 1;
+  BUMP_LEVEL_PATCH = 2;
+  BUMP_LEVEL_MINOR = 3;
+  BUMP_LEVEL_MAJOR = 4;
+}
+
+service CommitAnalyzerPlugin {
+  rpc AnalyzeCommits(AnalyzeCommitsRequest) returns (AnalyzeCommitsResponse);
+}
+
+message AnalyzeCommitsRequest {
+  ReleaseContext ctx = 1;
+}
+
+message AnalyzeCommitsResponse {
+  BumpLevel bump = 1;
+  string reason = 2;
+}
+
+// ----------------------------------------------------------------------------
+// ChangelogGenerator plugin
+// ----------------------------------------------------------------------------
+
+service ChangelogGeneratorPlugin {
+  rpc GenerateNotes(GenerateNotesRequest) returns (GenerateNotesResponse);
+}
+
+message GenerateNotesRequest {
+  ReleaseContext ctx = 1;
+}
+
+message GenerateNotesResponse {
+  string notes = 1;
+}
+
+// ----------------------------------------------------------------------------
+// FilesUpdater plugin
+// ----------------------------------------------------------------------------
+
+service FilesUpdaterPlugin {
+  rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse);
+}
+
+message UpdateFilesRequest {
+  ReleaseContext ctx = 1;
+}
+
+message UpdateFilesResponse {
+  repeated string updated_files = 1;
+  string error_message = 2;
+}
+
+// ----------------------------------------------------------------------------
+// Hooks plugin
+// ----------------------------------------------------------------------------
+
+service HooksPlugin {
+  rpc OnSuccess(OnSuccessRequest) returns (OnSuccessResponse);
+  rpc OnFail(OnFailRequest) returns (OnFailResponse);
+}
+
+message OnSuccessRequest {
+  ReleaseContext ctx = 1;
+  string release_url = 2;
+}
+
+message OnSuccessResponse {}
+
+message OnFailRequest {
+  ReleaseContext ctx = 1;
+  string error_message = 2;
+}
+
+message OnFailResponse {}

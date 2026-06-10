@@ -1,63 +1,44 @@
 # semrel-api
 
-Shared gRPC API module for [SemRel](https://github.com/SemRels/semrel) plugins.
+Shared proto and gRPC API definitions for [semrel](https://github.com/SemRels/semrel) plugins.
 
-## Overview
+> **Note**: The current semrel plugin architecture communicates via **environment variables and subprocess execution** — not gRPC. This repository contains the proto definitions for reference and potential future use.
 
-This module provides:
+## Contents
 
-- **Proto definitions** (`api/proto/v1/`) — the canonical gRPC contracts for all SemRel plugin types
-- **Generated Go stubs** (`api/gen/v1/`) — protobuf message types and gRPC service interfaces
-- **go-plugin wiring** (`plugin/`) — [hashicorp/go-plugin](https://github.com/hashicorp/go-plugin) `GRPCPlugin` implementations and shared `HandshakeConfig`
+- `api/proto/v1/` — Protobuf service definitions for all semrel plugin types
+- `api/gen/v1/` — Generated Go stubs (protobuf messages and gRPC service interfaces)
+- `plugin/` — [hashicorp/go-plugin](https://github.com/hashicorp/go-plugin) wiring (legacy)
 
-## Plugin Types
+## Plugin types
 
-| Key         | Service                    | Purpose                                      |
-|-------------|----------------------------|----------------------------------------------|
-| `provider`  | `ProviderPlugin`           | VCS platform (GitHub, GitLab, Gitea, git)    |
-| `condition` | `CIConditionPlugin`        | Verify CI environment before releasing       |
-| `analyzer`  | `CommitAnalyzerPlugin`     | Determine semver bump from commits           |
-| `generator` | `ChangelogGeneratorPlugin` | Render changelog / release notes             |
-| `updater`   | `FilesUpdaterPlugin`       | Write new version into project files         |
-| `hooks`     | `HooksPlugin`              | Lifecycle callbacks (success / failure)      |
+| Key | Service | Purpose |
+|---|---|---|
+| `provider` | `ProviderPlugin` | VCS platform (GitHub, GitLab, Gitea, git) |
+| `condition` | `CIConditionPlugin` | Verify CI environment before releasing |
+| `analyzer` | `CommitAnalyzerPlugin` | Determine semver bump from commits |
+| `generator` | `ChangelogGeneratorPlugin` | Render changelog / release notes |
+| `updater` | `FilesUpdaterPlugin` | Write new version into project files |
+| `hooks` | `HooksPlugin` | Lifecycle callbacks (success / failure) |
 
-## Usage
+## Current plugin contract
 
-### Host (semrel tool)
+semrel plugins today are standalone executables launched as subprocesses. They communicate via:
 
-```go
-import (
-    semrelapi "github.com/GoSemantics/go-semrel-api/plugin"
-    "github.com/hashicorp/go-plugin"
-)
+- **Environment variables** → plugin: `SEMREL_*` (release context) and `SEMREL_PLUGIN_*` (config from `args:`)
+- **stdout**: JSON result (analyzers only)
+- **stderr**: logs and `plugin_schema_version=N` announcement
+- **Exit code**: 0 = success, non-zero = abort release
 
-client := plugin.NewClient(&plugin.ClientConfig{
-    HandshakeConfig: semrelapi.HandshakeConfig,
-    Plugins:         semrelapi.PluginMap,
-    Cmd:             exec.Command("./provider-github"),
-    AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-})
+See the [plugin development guide](https://semrel.io/guide/plugin-development) for a full walkthrough.
+
+## Module
+
+```
+github.com/SemRels/semrel-api
 ```
 
-### Plugin binary
-
-```go
-import (
-    semrelapi "github.com/GoSemantics/go-semrel-api/plugin"
-    semrelv1  "github.com/GoSemantics/go-semrel-api/api/gen/v1"
-    "github.com/hashicorp/go-plugin"
-)
-
-plugin.Serve(&plugin.ServeConfig{
-    HandshakeConfig: semrelapi.HandshakeConfig,
-    Plugins: map[string]plugin.Plugin{
-        "provider": &semrelapi.ProviderGRPCPlugin{Impl: &MyProviderImpl{}},
-    },
-    GRPCServer: plugin.DefaultGRPCServer,
-})
-```
-
-## Regenerating Proto Code
+## Regenerating proto code
 
 ```bash
 buf generate

@@ -1,11 +1,11 @@
+version: "2"
+
 run:
   timeout: 5m
-  go: "1.24"
 
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck

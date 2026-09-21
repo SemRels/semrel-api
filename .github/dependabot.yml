@@ -11,3 +11,10 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    ignore:
+      # 1.84.0 carries GHSA-2v4p-qf9q-27wj (high-severity xDS DoS); the fix
+      # only exists as an unreleased 1.85.0-dev pseudo-version. Manually
+      # pinned to the last patched stable release, 1.83.2, instead.
+      # Re-enable once a patched stable release ships.
+      - dependency-name: "google.golang.org/grpc"
+        versions: [">=1.84.0"]
